@@ -1,5 +1,5 @@
 use sys;
-use std::{f32, mem, ptr};
+use std::{mem, ptr, f32};
 use std::marker::PhantomData;
 use std::os::raw::c_float;
 

@@ -8,8 +8,8 @@ use std::slice;
 use std::str;
 use sys::ImGuiStyleVar;
 
-pub use sys::{ImDrawIdx, ImDrawVert, ImGuiColorEditFlags, ImGuiHoveredFlags, ImGuiInputTextFlags,
-              ImGuiKey, ImGuiSelectableFlags, ImGuiCond, ImGuiCol, ImGuiStyle, ImGuiTreeNodeFlags,
+pub use sys::{ImDrawIdx, ImDrawVert, ImGuiCol, ImGuiColorEditFlags, ImGuiCond, ImGuiHoveredFlags,
+              ImGuiInputTextFlags, ImGuiKey, ImGuiSelectableFlags, ImGuiStyle, ImGuiTreeNodeFlags,
               ImGuiWindowFlags, ImVec2, ImVec4};
 pub use child_frame::ChildFrame;
 pub use color_editors::{ColorButton, ColorEdit, ColorEditMode, ColorFormat, ColorPicker,
@@ -89,10 +89,18 @@ impl ImGui {
             log_filename: None,
         }
     }
-    fn io(&self) -> &sys::ImGuiIO { unsafe { &*sys::igGetIO() } }
-    fn io_mut(&mut self) -> &mut sys::ImGuiIO { unsafe { &mut *sys::igGetIO() } }
-    pub fn style(&self) -> &ImGuiStyle { unsafe { &*sys::igGetStyle() } }
-    pub fn style_mut(&mut self) -> &mut ImGuiStyle { unsafe { &mut *sys::igGetStyle() } }
+    pub fn io(&self) -> &sys::ImGuiIO {
+        unsafe { &*sys::igGetIO() }
+    }
+    pub fn io_mut(&mut self) -> &mut sys::ImGuiIO {
+        unsafe { &mut *sys::igGetIO() }
+    }
+    pub fn style(&self) -> &ImGuiStyle {
+        unsafe { &*sys::igGetStyle() }
+    }
+    pub fn style_mut(&mut self) -> &mut ImGuiStyle {
+        unsafe { &mut *sys::igGetStyle() }
+    }
     pub fn prepare_texture<'a, F, T>(&mut self, f: F) -> T
     where
         F: FnOnce(TextureHandle<'a>) -> T,
@@ -233,9 +241,15 @@ impl ImGui {
             sys::ImGuiIO_AddInputCharactersUTF8(buf.as_ptr() as *const _);
         }
     }
-    pub fn get_time(&self) -> f32 { unsafe { sys::igGetTime() } }
-    pub fn get_frame_count(&self) -> i32 { unsafe { sys::igGetFrameCount() } }
-    pub fn get_frame_rate(&self) -> f32 { self.io().framerate }
+    pub fn get_time(&self) -> f32 {
+        unsafe { sys::igGetTime() }
+    }
+    pub fn get_frame_count(&self) -> i32 {
+        unsafe { sys::igGetFrameCount() }
+    }
+    pub fn get_frame_rate(&self) -> f32 {
+        self.io().framerate
+    }
     pub fn frame<'ui, 'a: 'ui>(
         &'a mut self,
         size_points: (u32, u32),
@@ -260,7 +274,9 @@ impl ImGui {
         }
         unsafe {
             sys::igNewFrame();
-            CURRENT_UI = Some(Ui { imgui: mem::transmute(self as &'a ImGui) });
+            CURRENT_UI = Some(Ui {
+                imgui: mem::transmute(self as &'a ImGui),
+            });
         }
         Ui { imgui: self }
     }
@@ -289,10 +305,14 @@ pub struct Ui<'ui> {
 
 static FMT: &'static [u8] = b"%s\0";
 
-fn fmt_ptr() -> *const c_char { FMT.as_ptr() as *const c_char }
+fn fmt_ptr() -> *const c_char {
+    FMT.as_ptr() as *const c_char
+}
 
 impl<'ui> Ui<'ui> {
-    pub fn imgui(&self) -> &ImGui { self.imgui }
+    pub fn imgui(&self) -> &ImGui {
+        self.imgui
+    }
     pub fn want_capture_mouse(&self) -> bool {
         let io = self.imgui.io();
         io.want_capture_mouse
@@ -341,8 +361,12 @@ impl<'ui> Ui<'ui> {
         }
         Ok(())
     }
-    pub fn show_user_guide(&self) { unsafe { sys::igShowUserGuide() }; }
-    pub fn show_default_style_editor(&self) { unsafe { sys::igShowStyleEditor(ptr::null_mut()) }; }
+    pub fn show_user_guide(&self) {
+        unsafe { sys::igShowUserGuide() };
+    }
+    pub fn show_default_style_editor(&self) {
+        unsafe { sys::igShowStyleEditor(ptr::null_mut()) };
+    }
     pub fn show_style_editor<'p>(&self, style: &'p mut ImGuiStyle) {
         unsafe {
             sys::igShowStyleEditor(style as *mut ImGuiStyle);
@@ -361,24 +385,32 @@ impl<'ui> Ui<'ui> {
 }
 
 impl<'a> Ui<'a> {
-    pub unsafe fn current_ui() -> Option<&'a Ui<'a>> { CURRENT_UI.as_ref() }
+    pub unsafe fn current_ui() -> Option<&'a Ui<'a>> {
+        CURRENT_UI.as_ref()
+    }
 }
 
 // Window
 impl<'ui> Ui<'ui> {
-    pub fn window<'p>(&self, name: &'p ImStr) -> Window<'ui, 'p> { Window::new(self, name) }
+    pub fn window<'p>(&self, name: &'p ImStr) -> Window<'ui, 'p> {
+        Window::new(self, name)
+    }
 }
 
 // Layout
 impl<'ui> Ui<'ui> {
     /// Pushes a value to the item width stack.
-    pub fn push_item_width(&self, width: f32) { unsafe { sys::igPushItemWidth(width) } }
+    pub fn push_item_width(&self, width: f32) {
+        unsafe { sys::igPushItemWidth(width) }
+    }
 
     /// Pops a value from the item width stack.
     ///
     /// # Aborts
     /// The current process is aborted if the item width stack is empty.
-    pub fn pop_item_width(&self) { unsafe { sys::igPopItemWidth() } }
+    pub fn pop_item_width(&self) {
+        unsafe { sys::igPopItemWidth() }
+    }
 
     /// Runs a function after temporarily pushing a value to the item width stack.
     pub fn with_item_width<F>(&self, width: f32, f: F)
@@ -390,21 +422,33 @@ impl<'ui> Ui<'ui> {
         self.pop_item_width();
     }
 
-    pub fn separator(&self) { unsafe { sys::igSeparator() }; }
-    pub fn new_line(&self) { unsafe { sys::igNewLine() } }
-    pub fn same_line(&self, pos_x: f32) { unsafe { sys::igSameLine(pos_x, -1.0f32) } }
+    pub fn separator(&self) {
+        unsafe { sys::igSeparator() };
+    }
+    pub fn new_line(&self) {
+        unsafe { sys::igNewLine() }
+    }
+    pub fn same_line(&self, pos_x: f32) {
+        unsafe { sys::igSameLine(pos_x, -1.0f32) }
+    }
     pub fn same_line_spacing(&self, pos_x: f32, spacing_w: f32) {
         unsafe { sys::igSameLine(pos_x, spacing_w) }
     }
-    pub fn spacing(&self) { unsafe { sys::igSpacing() }; }
+    pub fn spacing(&self) {
+        unsafe { sys::igSpacing() };
+    }
 
     pub fn columns<'p>(&self, count: i32, id: &'p ImStr, border: bool) {
         unsafe { sys::igColumns(count, id.as_ptr(), border) }
     }
 
-    pub fn next_column(&self) { unsafe { sys::igNextColumn() } }
+    pub fn next_column(&self) {
+        unsafe { sys::igNextColumn() }
+    }
 
-    pub fn get_column_index(&self) -> i32 { unsafe { sys::igGetColumnIndex() } }
+    pub fn get_column_index(&self) -> i32 {
+        unsafe { sys::igGetColumnIndex() }
+    }
 
     pub fn get_column_offset(&self, column_index: i32) -> f32 {
         unsafe { sys::igGetColumnOffset(column_index) }
@@ -418,19 +462,25 @@ impl<'ui> Ui<'ui> {
         unsafe { sys::igGetColumnWidth(column_index) }
     }
 
-    pub fn get_columns_count(&self) -> i32 { unsafe { sys::igGetColumnsCount() } }
+    pub fn get_columns_count(&self) -> i32 {
+        unsafe { sys::igGetColumnsCount() }
+    }
 }
 
 // ID scopes
 impl<'ui> Ui<'ui> {
     /// Pushes an identifier to the ID stack.
-    pub fn push_id(&self, id: i32) { unsafe { sys::igPushIDInt(id) }; }
+    pub fn push_id(&self, id: i32) {
+        unsafe { sys::igPushIDInt(id) };
+    }
 
     /// Pops an identifier from the ID stack.
     ///
     /// # Aborts
     /// The current process is aborted if the ID stack is empty.
-    pub fn pop_id(&self) { unsafe { sys::igPopID() }; }
+    pub fn pop_id(&self) {
+        unsafe { sys::igPopID() };
+    }
 
     /// Runs a function after temporarily pushing a value to the ID stack.
     pub fn with_id<F>(&self, id: i32, f: F)
@@ -654,7 +704,9 @@ impl<'ui> Ui<'ui> {
 
 // Widgets: Trees
 impl<'ui> Ui<'ui> {
-    pub fn tree_node<'p>(&self, id: &'p ImStr) -> TreeNode<'ui, 'p> { TreeNode::new(self, id) }
+    pub fn tree_node<'p>(&self, id: &'p ImStr) -> TreeNode<'ui, 'p> {
+        TreeNode::new(self, id)
+    }
     pub fn collapsing_header<'p>(&self, label: &'p ImStr) -> CollapsingHeader<'ui, 'p> {
         CollapsingHeader::new(self, label)
     }
@@ -718,7 +770,9 @@ impl<'ui> Ui<'ui> {
     /// # fn main() {
     /// # }
     /// ```
-    pub fn tooltip_text<T: AsRef<str>>(&self, text: T) { self.tooltip(|| self.text(text)); }
+    pub fn tooltip_text<T: AsRef<str>>(&self, text: T) {
+        self.tooltip(|| self.text(text));
+    }
 }
 
 // Widgets: Menus
@@ -743,7 +797,9 @@ impl<'ui> Ui<'ui> {
             unsafe { sys::igEndMenuBar() };
         }
     }
-    pub fn menu<'p>(&self, label: &'p ImStr) -> Menu<'ui, 'p> { Menu::new(self, label) }
+    pub fn menu<'p>(&self, label: &'p ImStr) -> Menu<'ui, 'p> {
+        Menu::new(self, label)
+    }
     pub fn menu_item<'p>(&self, label: &'p ImStr) -> MenuItem<'ui, 'p> {
         MenuItem::new(self, label)
     }
@@ -764,7 +820,9 @@ impl<'ui> Ui<'ui> {
             unsafe { sys::igEndPopup() };
         }
     }
-    pub fn close_current_popup(&self) { unsafe { sys::igCloseCurrentPopup() }; }
+    pub fn close_current_popup(&self) {
+        unsafe { sys::igCloseCurrentPopup() };
+    }
 }
 
 // Widgets: Combos
